@@ -29,8 +29,10 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 ## Commands
 - mdocs ls [--json]
     List accessible docs. JSON: [{"id","title","workspaceId","createdAt","updatedAt"}]
-- mdocs workspaces [--json]   (alias: ws)
+- mdocs workspaces [--json]   (alias: ws; same as "ws list")
     List your workspaces with ids (for "new --workspace").
+- mdocs ws create <name> [--json]
+    Create a new team workspace. JSON: {"id","type","name","role"}.
 - mdocs pull <doc-id> [path] [--force] [--json]
     Fetch a doc's current markdown to a local file (default ./<title-slug>.md),
     and link it in ./.mdocs/ (records the base version for a later push).

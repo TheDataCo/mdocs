@@ -180,9 +180,9 @@ program
     }
   })
 
-program
-  .command('workspaces')
-  .alias('ws')
+const ws = program.command('workspaces').alias('ws').description('List or create workspaces')
+
+ws.command('list', { isDefault: true })
   .description('List your workspaces (ids for `new --workspace`)')
   .action(async () => {
     const { workspaces } = await api()
@@ -190,6 +190,16 @@ program
       .catch((e: ApiError) => fail(e.code, e.message))
     if (program.opts().json) return void process.stdout.write(JSON.stringify(workspaces) + '\n')
     for (const w of workspaces) process.stdout.write(`${w.id}  ${w.type === 'personal' ? '(personal)' : '(team)   '}  ${w.name}\n`)
+  })
+
+ws.command('create <name>')
+  .description('Create a new team workspace')
+  .action(async (name: string) => {
+    const { workspace } = await api()
+      .createWorkspace(name)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(workspace) + '\n')
+    process.stdout.write(`Created workspace "${workspace.name}" (${workspace.id})\n`)
   })
 
 program
