@@ -13,14 +13,20 @@ npm i -g github:TheDataCo/mdocs
 ## Usage
 
 ```sh
-mdocs auth login        # log in via the website (device authorization)
-mdocs whoami            # who am I
-mdocs ls                # list accessible docs
-mdocs pull <doc-id>     # write a doc to ./<title>.md and link it
+mdocs auth login                  # log in via the website (device authorization)
+mdocs whoami                      # who am I
+mdocs ws                          # list workspaces (ids)
+mdocs ls                          # list accessible docs
+mdocs pull <doc-id>               # write a doc to ./<title>.md and link it
+mdocs push [path] -m "why"        # merge local edits back (server-side 3-way merge)
+mdocs new <file.md> -w <ws-id>    # create a doc from a file in a workspace
+mdocs instructions                # full guide for agents/LLMs
 ```
 
-`mdocs push` (merge local edits back, server-side 3-way against a version base)
-and `mdocs revert` are coming next.
+Push does a server-side 3-way merge against the version you pulled, applies it to
+the live doc (humans see it instantly), and records a version with your message.
+Conflicting overlaps exit `7` — re-pull, re-apply, push again. `mdocs revert` is
+coming next.
 
 ## Auth
 

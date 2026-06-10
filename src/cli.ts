@@ -1,10 +1,11 @@
 import { spawn } from 'node:child_process'
-import { existsSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename } from 'node:path'
 import { Command } from 'commander'
 import { Api, ApiError } from './api.js'
 import { loadConfig, resolve, saveConfig } from './config.js'
 import { INSTRUCTIONS } from './instructions.js'
-import { findByPath, getEntry, setEntry } from './manifest.js'
+import { findByPath, getEntry, listEntries, setEntry } from './manifest.js'
 
 // Exit codes (stable for agents/CI).
 const EXIT: Record<string, number> = {
@@ -154,6 +155,61 @@ program
     } else {
       process.stdout.write(`Pulled "${res.doc.title}" → ${dest} (version ${res.version.n})\n`)
     }
+  })
+
+program
+  .command('workspaces')
+  .alias('ws')
+  .description('List your workspaces (ids for `new --workspace`)')
+  .action(async () => {
+    const { workspaces } = await api()
+      .listWorkspaces()
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(workspaces) + '\n')
+    for (const w of workspaces) process.stdout.write(`${w.id}  ${w.type === 'personal' ? '(personal)' : '(team)   '}  ${w.name}\n`)
+  })
+
+program
+  .command('push [path]')
+  .description('Merge local edits back to the doc (server-side 3-way merge)')
+  .option('-m, --message <msg>', 'commit message describing the change')
+  .action(async (path: string | undefined, opts: { message?: string }) => {
+    const entries = listEntries()
+    const entry = path ? findByPath(path) : entries.length === 1 ? entries[0] : undefined
+    if (!entry) {
+      fail(path ? 'stale_manifest' : 'usage', path ? `${path} isn't a pulled doc. Run \`mdocs pull\` first.` : 'Specify a path (multiple or zero docs linked here).')
+    }
+    const content = readFileSync(entry.path, 'utf8')
+    const res = await api()
+      .push(entry.docId, { baseVersion: Number(entry.baseVersion), content, message: opts.message })
+      .catch((e: ApiError) => {
+        if (e.code === 'patch_conflict')
+          fail('patch_conflict', 'Conflict with current head — run `mdocs pull` to get the latest, re-apply your change, and push again.')
+        fail(e.code, e.message)
+      })
+    setEntry({ ...entry, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
+    if (program.opts().json) return void process.stdout.write(JSON.stringify({ version: res.version.n }) + '\n')
+    process.stdout.write(`Pushed ${entry.path} (version ${res.version.n})\n`)
+  })
+
+program
+  .command('new <path>')
+  .description('Create a new doc from a local file and push its contents')
+  .option('-w, --workspace <id>', 'workspace to create it in (default: personal)')
+  .option('-t, --title <title>', 'doc title (default: first heading or filename)')
+  .action(async (path: string, opts: { workspace?: string; title?: string }) => {
+    const { server } = resolve(program.opts())
+    const content = readFileSync(path, 'utf8')
+    const title =
+      opts.title ?? content.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? basename(path).replace(/\.md$/, '')
+    const client = api()
+    const { doc } = await client.createDoc(title, opts.workspace).catch((e: ApiError) => fail(e.code, e.message))
+    const res = await client
+      .push(doc.id, { baseVersion: 0, content, message: 'create' })
+      .catch((e: ApiError) => fail(e.code, e.message))
+    setEntry({ docId: doc.id, path, server, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
+    if (program.opts().json) return void process.stdout.write(JSON.stringify({ docId: doc.id, version: res.version.n }) + '\n')
+    process.stdout.write(`Created "${title}" (${doc.id}) and pushed ${path}\n`)
   })
 
 program.parseAsync().catch((e) => fail(e.code ?? 'generic', e.message ?? String(e)))

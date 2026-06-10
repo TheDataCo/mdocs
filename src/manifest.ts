@@ -40,6 +40,10 @@ export function findByPath(path: string): DocEntry | undefined {
   return Object.values(read().docs).find((d) => d.path === path)
 }
 
+export function listEntries(): DocEntry[] {
+  return Object.values(read().docs)
+}
+
 export function setEntry(entry: DocEntry, baseContent: string): void {
   const m = read()
   m.docs[entry.docId] = entry

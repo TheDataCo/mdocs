@@ -29,26 +29,37 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 ## Commands
 - mdocs ls [--json]
     List accessible docs. JSON: [{"id","title","workspaceId","createdAt","updatedAt"}]
+- mdocs workspaces [--json]   (alias: ws)
+    List your workspaces with ids (for `new --workspace`).
 - mdocs pull <doc-id> [path] [--force] [--json]
     Fetch a doc's current markdown to a local file (default ./<title-slug>.md),
     and link it in ./.mdocs/ (records the base version for a later push).
     JSON: {"path","version"}. Use --force to overwrite an existing file.
+- mdocs push [path] [--message "why"] [--json]
+    Merge local edits back. The server 3-way merges your file against current
+    head using the version you pulled as the ancestor, applies it to the live
+    doc (humans see it instantly), and records a version. On a conflicting
+    overlap it exits 7 (patch_conflict) — re-run pull, re-apply, push again.
+    ALWAYS pass --message describing the change. JSON: {"version"}.
+- mdocs new <path> [--workspace <id>] [--title "…"] [--json]
+    Create a new doc from a local file and push its contents. Without
+    --workspace it goes to your personal workspace. Title defaults to the first
+    "# heading" or the filename. JSON: {"docId","version"}.
 - mdocs whoami [--json]
 - mdocs auth login | logout
 - mdocs instructions
     Print this guide.
-- mdocs push  [COMING SOON — not yet available]
-    Will send local edits; server 3-way merges against the base version and
-    applies them to the live doc. Requires --message.
 
 Global flags: --server <url>, --json.
 
 ## Typical agent workflow
 1. export MDOCS_TOKEN=...; export MDOCS_SERVER=https://mdocs.datacompany.dev
-2. mdocs ls --json                  # find the doc id you need
-3. mdocs pull <id> doc.md --json    # get the markdown locally
-4. edit doc.md                      # make your change
-5. mdocs push doc.md --message "…"  # (coming soon) merge it back
+2. mdocs ls --json                       # find the doc id you need
+3. mdocs pull <id> doc.md --json         # get the markdown locally
+4. edit doc.md                           # make your change
+5. mdocs push doc.md --message "…"       # merge it back (re-pull if it conflicts)
+To create a brand-new doc: `mdocs new doc.md --workspace <id> --message "…"` is
+`mdocs ws` then create+push in one step.
 
 ## Exit codes
 0 ok · 2 usage · 3 auth_failed · 4 permission_denied · 5 not_found ·

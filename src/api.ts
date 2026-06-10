@@ -51,5 +51,10 @@ export class Api {
 
   me = () => this.req('/api/me').then((r) => r.json())
   listDocs = () => this.req('/api/docs').then((r) => r.json())
+  listWorkspaces = () => this.req('/api/workspaces').then((r) => r.json())
   pull = (id: string) => this.req(`/api/docs/${id}/pull`).then((r) => r.json())
+  createDoc = (title: string, workspaceId?: string) =>
+    this.req('/api/docs', { method: 'POST', body: JSON.stringify({ title, workspaceId }) }).then((r) => r.json())
+  push = (id: string, payload: { baseVersion: number; content: string; message?: string }) =>
+    this.req(`/api/docs/${id}/push`, { method: 'POST', body: JSON.stringify(payload) }).then((r) => r.json())
 }
