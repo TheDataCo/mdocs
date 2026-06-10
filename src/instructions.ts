@@ -30,7 +30,7 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - mdocs ls [--json]
     List accessible docs. JSON: [{"id","title","workspaceId","createdAt","updatedAt"}]
 - mdocs workspaces [--json]   (alias: ws)
-    List your workspaces with ids (for `new --workspace`).
+    List your workspaces with ids (for "new --workspace").
 - mdocs pull <doc-id> [path] [--force] [--json]
     Fetch a doc's current markdown to a local file (default ./<title-slug>.md),
     and link it in ./.mdocs/ (records the base version for a later push).
@@ -58,8 +58,8 @@ Global flags: --server <url>, --json.
 3. mdocs pull <id> doc.md --json         # get the markdown locally
 4. edit doc.md                           # make your change
 5. mdocs push doc.md --message "…"       # merge it back (re-pull if it conflicts)
-To create a brand-new doc: `mdocs new doc.md --workspace <id> --message "…"` is
-`mdocs ws` then create+push in one step.
+To create a brand-new doc: run "mdocs ws" to find a workspace id, then
+"mdocs new doc.md --workspace <id>" (create + push in one step).
 
 ## Exit codes
 0 ok · 2 usage · 3 auth_failed · 4 permission_denied · 5 not_found ·
