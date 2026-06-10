@@ -305,9 +305,28 @@ skills
 program
   .command('update')
   .description('Update the mdocs CLI to the latest published version')
-  .action(() => {
-    const child = spawn('npm', ['i', '-g', '@thedataco/mdocs@latest'], { stdio: 'inherit', shell: process.platform === 'win32' })
-    child.on('exit', (code) => process.exit(code ?? 0))
+  .action(async () => {
+    const current = pkgVersion()
+    let latest: string | undefined
+    try {
+      const r = await fetch('https://registry.npmjs.org/@thedataco%2Fmdocs/latest')
+      if (r.ok) latest = (await r.json()).version
+    } catch {
+      /* offline / registry unreachable — fall through to npm */
+    }
+    if (latest && latest === current) {
+      process.stdout.write(`Already on the latest version (v${current}).\n`)
+      return
+    }
+    process.stdout.write(latest ? `Updating v${current} → v${latest}…\n` : 'Updating to the latest version…\n')
+    const child = spawn('npm', ['i', '-g', '@thedataco/mdocs@latest'], {
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    })
+    child.on('exit', (code) => {
+      if (code === 0) process.stdout.write(latest ? `✓ Updated to v${latest}.\n` : '✓ Updated.\n')
+      process.exit(code ?? 0)
+    })
   })
 
 program.parseAsync().catch((e) => fail(e.code ?? 'generic', e.message ?? String(e)))
