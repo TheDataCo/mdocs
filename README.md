@@ -4,11 +4,18 @@ CLI for [**mdocs** — Docs for Markdown](https://mdocs.datacompany.dev). Auth, 
 and pull collaborative markdown docs from the terminal — built so agents and devs
 are first-class collaborators alongside humans editing live in the browser.
 
+## Get started
+
 ```sh
-npm i -g @thedataco/mdocs        # published package; the command is `mdocs`
-# or install the latest from source:
-npm i -g github:TheDataCo/mdocs
+npm i -g @thedataco/mdocs   # 1. install (command is `mdocs`)
+mdocs auth login            # 2. log in via the website (device authorization)
+mdocs skills install        # 3. install the agent skill for Claude + Codex
 ```
+
+Step 3 drops a small skill into `~/.claude/skills` and `~/.codex/skills` so your
+coding agents automatically discover mdocs and know to run `mdocs instructions`.
+
+Install the latest from source instead: `npm i -g github:TheDataCo/mdocs`.
 
 ## Usage
 

@@ -56,6 +56,9 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - mdocs revert <doc-id> <version> [--message "…"]
     Restore a previous version's content as a NEW version (non-destructive —
     history is preserved; the live doc updates). Use after inspecting history.
+- mdocs skills install
+    Install the mdocs skill into Claude and Codex (~/.claude/skills, ~/.codex/skills)
+    so coding agents auto-discover mdocs and know to run "mdocs instructions".
 - mdocs update
     Update this CLI to the latest published version.
 - mdocs whoami [--json]

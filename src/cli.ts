@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
@@ -7,6 +8,7 @@ import { Api, ApiError } from './api.js'
 import { loadConfig, resolve, saveConfig } from './config.js'
 import { INSTRUCTIONS } from './instructions.js'
 import { findByPath, getEntry, listEntries, setEntry } from './manifest.js'
+import { SKILL_MD } from './skill.js'
 
 // Exit codes (stable for agents/CI).
 const EXIT: Record<string, number> = {
@@ -270,6 +272,34 @@ program
       .catch((e: ApiError) => fail(e.code, e.message))
     if (program.opts().json) return void process.stdout.write(JSON.stringify({ version: res.version.n }) + '\n')
     process.stdout.write(`Reverted to v${version} → new version ${res.version.n}\n`)
+  })
+
+const skills = program.command('skills').description('Install the mdocs agent skill (Claude + Codex)')
+skills
+  .command('install')
+  .description('Install the mdocs skill so coding agents discover it')
+  .action(() => {
+    const targets = [
+      { name: 'Claude', base: join(homedir(), '.claude') },
+      { name: 'Codex', base: join(homedir(), '.codex') },
+    ]
+    let installed = 0
+    for (const t of targets) {
+      if (!existsSync(t.base)) {
+        process.stdout.write(`–  ${t.name}: not found (skipped)\n`)
+        continue
+      }
+      const dir = join(t.base, 'skills', 'mdocs')
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(join(dir, 'SKILL.md'), SKILL_MD)
+      installed++
+      process.stdout.write(`✓  ${t.name}: ${join(dir, 'SKILL.md')}\n`)
+    }
+    process.stdout.write(
+      installed > 0
+        ? `\nDone. Agents will now discover mdocs and use \`mdocs instructions\`.\n`
+        : `\nNo agent config dirs found (~/.claude, ~/.codex).\n`,
+    )
   })
 
 program
