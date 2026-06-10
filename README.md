@@ -5,7 +5,9 @@ and pull collaborative markdown docs from the terminal — built so agents and d
 are first-class collaborators alongside humans editing live in the browser.
 
 ```sh
-npm i -g mdocs      # or: npx mdocs <command>
+npm i -g @thedataco/mdocs        # published package; the command is `mdocs`
+# or install the latest from source:
+npm i -g github:TheDataCo/mdocs
 ```
 
 ## Usage

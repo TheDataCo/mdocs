@@ -1,5 +1,5 @@
 {
-  "name": "mdocs",
+  "name": "@thedataco/mdocs",
   "version": "0.1.0",
   "description": "CLI for mdocs — Docs for Markdown. Auth, list, and pull markdown docs from the terminal.",
   "type": "module",
@@ -9,6 +9,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   },
