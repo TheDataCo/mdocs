@@ -45,6 +45,17 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     Create a new doc from a local file and push its contents. Without
     --workspace it goes to your personal workspace. Title defaults to the first
     "# heading" or the filename. JSON: {"docId","version"}.
+- mdocs history <doc-id> [--json]   (alias: log)
+    Show version history: each version's number, time, author, source, message.
+    JSON: [{"n","createdAt","authorEmail","source","message","contentHash"}]
+- mdocs pull <doc-id> <path> --rev <n>
+    Write a specific historical version's markdown to a file (read-only; not
+    linked/tracked). Use it to inspect or diff an old version.
+- mdocs revert <doc-id> <version> [--message "…"]
+    Restore a previous version's content as a NEW version (non-destructive —
+    history is preserved; the live doc updates). Use after inspecting history.
+- mdocs update
+    Update this CLI to the latest published version.
 - mdocs whoami [--json]
 - mdocs auth login | logout
 - mdocs instructions

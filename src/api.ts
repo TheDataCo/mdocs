@@ -53,6 +53,12 @@ export class Api {
   listDocs = () => this.req('/api/docs').then((r) => r.json())
   listWorkspaces = () => this.req('/api/workspaces').then((r) => r.json())
   pull = (id: string) => this.req(`/api/docs/${id}/pull`).then((r) => r.json())
+  history = (id: string) => this.req(`/api/docs/${id}/versions`).then((r) => r.json())
+  versionContent = (id: string, n: number) => this.req(`/api/docs/${id}/versions/${n}`).then((r) => r.text())
+  revert = (id: string, version: number, message?: string) =>
+    this.req(`/api/docs/${id}/revert`, { method: 'POST', body: JSON.stringify({ version, message }) }).then((r) =>
+      r.json(),
+    )
   createDoc = (title: string, workspaceId?: string) =>
     this.req('/api/docs', { method: 'POST', body: JSON.stringify({ title, workspaceId }) }).then((r) => r.json())
   push = (id: string, payload: { baseVersion: number; content: string; message?: string }) =>

@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename } from 'node:path'
+import { basename, dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
 import { Api, ApiError } from './api.js'
 import { loadConfig, resolve, saveConfig } from './config.js'
@@ -48,8 +49,18 @@ function slugify(title: string): string {
   )
 }
 
+// Read the real version from package.json (next to dist/), so it never drifts.
+function pkgVersion(): string {
+  try {
+    const p = join(dirname(fileURLToPath(import.meta.url)), '../package.json')
+    return JSON.parse(readFileSync(p, 'utf8')).version ?? '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+
 const program = new Command()
-program.name('mdocs').description('mdocs — Docs for Markdown').version('0.1.0')
+program.name('mdocs').description('mdocs — Docs for Markdown').version(pkgVersion())
 program.option('--server <url>', 'mdocs server URL')
 program.option('--json', 'machine-readable output')
 // Agents: a single command that fully explains the tool.
@@ -136,8 +147,20 @@ program
   .command('pull <doc> [path]')
   .description('Pull a document to a local .md file')
   .option('-f, --force', 'overwrite an existing unmanaged file')
-  .action(async (docId: string, path: string | undefined, opts: { force?: boolean }) => {
+  .option('--rev <n>', 'pull a specific historical version (read-only, not linked)')
+  .action(async (docId: string, path: string | undefined, opts: { force?: boolean; rev?: string }) => {
     const { server } = resolve(program.opts())
+    // Historical version: fetch that version's text to a file; don't link/track it.
+    if (opts.rev) {
+      const text = await api()
+        .versionContent(docId, Number(opts.rev))
+        .catch((e: ApiError) => fail(e.code, e.message))
+      const dest = path ?? `${docId}.v${opts.rev}.md`
+      if (existsSync(dest) && !opts.force) fail('generic', `${dest} exists; use --force.`)
+      writeFileSync(dest, text)
+      process.stdout.write(`Wrote version ${opts.rev} → ${dest} (read-only snapshot)\n`)
+      return
+    }
     const res = await api()
       .pull(docId)
       .catch((e: ApiError) => fail(e.code, e.message))
@@ -210,6 +233,41 @@ program
     setEntry({ docId: doc.id, path, server, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
     if (program.opts().json) return void process.stdout.write(JSON.stringify({ docId: doc.id, version: res.version.n }) + '\n')
     process.stdout.write(`Created "${title}" (${doc.id}) and pushed ${path}\n`)
+  })
+
+program
+  .command('history <doc>')
+  .alias('log')
+  .description('Show a document’s version history')
+  .action(async (docId: string) => {
+    const { versions } = await api()
+      .history(docId)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(versions) + '\n')
+    for (const v of versions) {
+      const who = v.authorEmail ?? (v.source === 'cli-pull' ? '—' : v.source)
+      process.stdout.write(`v${v.n}\t${new Date(v.createdAt).toLocaleString()}\t${who}\t${v.message ?? v.source}\n`)
+    }
+  })
+
+program
+  .command('revert <doc> <version>')
+  .description('Restore a previous version as a new version (non-destructive)')
+  .option('-m, --message <msg>', 'commit message')
+  .action(async (docId: string, version: string, opts: { message?: string }) => {
+    const res = await api()
+      .revert(docId, Number(version), opts.message)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify({ version: res.version.n }) + '\n')
+    process.stdout.write(`Reverted to v${version} → new version ${res.version.n}\n`)
+  })
+
+program
+  .command('update')
+  .description('Update the mdocs CLI to the latest published version')
+  .action(() => {
+    const child = spawn('npm', ['i', '-g', '@thedataco/mdocs@latest'], { stdio: 'inherit', shell: process.platform === 'win32' })
+    child.on('exit', (code) => process.exit(code ?? 0))
   })
 
 program.parseAsync().catch((e) => fail(e.code ?? 'generic', e.message ?? String(e)))
