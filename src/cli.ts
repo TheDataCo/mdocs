@@ -3,6 +3,7 @@ import { existsSync, writeFileSync } from 'node:fs'
 import { Command } from 'commander'
 import { Api, ApiError } from './api.js'
 import { loadConfig, resolve, saveConfig } from './config.js'
+import { INSTRUCTIONS } from './instructions.js'
 import { findByPath, getEntry, setEntry } from './manifest.js'
 
 // Exit codes (stable for agents/CI).
@@ -50,6 +51,15 @@ const program = new Command()
 program.name('mdocs').description('mdocs — Docs for Markdown').version('0.1.0')
 program.option('--server <url>', 'mdocs server URL')
 program.option('--json', 'machine-readable output')
+// Agents: a single command that fully explains the tool.
+program.addHelpText('after', '\nAgents/LLMs: run `mdocs instructions` for a complete machine-readable guide.\n')
+
+program
+  .command('instructions')
+  .description('Print a complete guide for agents/LLMs (llm.txt style)')
+  .action(() => {
+    process.stdout.write(INSTRUCTIONS)
+  })
 
 const api = () => {
   const { server, token } = resolve(program.opts())
