@@ -67,6 +67,14 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     so coding agents auto-discover mdocs and know to run "mdocs instructions".
 - mdocs update
     Update this CLI to the latest published version.
+- mdocs comments <doc-id> [--all] [--json]
+    List open comments (people leave these as tasks for you). --all includes
+    resolved. JSON: [{"id","author_name","body","excerpt","status","parent_id"}]
+- mdocs comments add <doc-id> <text...>
+    Add a comment to a doc.
+- mdocs comments resolve <doc-id> <comment-id>
+    Mark a comment resolved (do this after you've made the requested change).
+    Typical task loop: read open comments → pull → edit → push --message → resolve.
 - mdocs whoami [--json]
 - mdocs auth login | logout
 - mdocs instructions

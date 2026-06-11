@@ -274,6 +274,43 @@ program
     process.stdout.write(`Reverted to v${version} → new version ${res.version.n}\n`)
   })
 
+const cm = program.command('comments').description('List, add, and resolve comments (agent task channel)')
+
+cm.command('list <doc>', { isDefault: true })
+  .description('List open comments (use --all for resolved too)')
+  .option('-a, --all', 'include resolved comments')
+  .action(async (docId: string, opts: { all?: boolean }) => {
+    const { comments } = await api()
+      .listComments(docId, opts.all ? undefined : 'open')
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(comments) + '\n')
+    if (comments.length === 0) return void process.stdout.write('No comments.\n')
+    for (const c of comments) {
+      const tag = c.parent_id ? '  ↳' : `[${c.status}]`
+      const ex = c.excerpt ? ` (on “${c.excerpt.slice(0, 40)}”)` : ''
+      process.stdout.write(`${tag} ${c.id}  ${c.author_name ?? '—'}: ${c.body}${ex}\n`)
+    }
+  })
+
+cm.command('add <doc> <body...>')
+  .description('Add a comment to a doc')
+  .action(async (docId: string, body: string[]) => {
+    const { comment } = await api()
+      .addComment(docId, body.join(' '))
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(comment) + '\n')
+    process.stdout.write(`Added comment ${comment.id}\n`)
+  })
+
+cm.command('resolve <doc> <id>')
+  .description('Resolve a comment')
+  .action(async (docId: string, cid: string) => {
+    await api()
+      .resolveComment(docId, cid)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    process.stdout.write(`Resolved ${cid}\n`)
+  })
+
 program
   .command('share <doc> [email]')
   .description('Share a doc with someone by email, or create a shareable link (--link)')
