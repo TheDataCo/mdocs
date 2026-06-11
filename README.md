@@ -28,6 +28,7 @@ mdocs ls                          # list accessible docs
 mdocs pull <doc-id>               # write a doc to ./<title>.md and link it
 mdocs push [path] -m "why"        # merge local edits back (server-side 3-way merge)
 mdocs new <file.md> -w <ws-id>    # create a doc from a file in a workspace
+mdocs share <doc> <email>         # share with a person (or --link for a URL)
 mdocs history <doc-id>            # version history (who/when/why)
 mdocs revert <doc-id> <version>   # restore a version as a new version
 mdocs update                      # self-update to the latest published version

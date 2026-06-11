@@ -47,6 +47,12 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     Create a new doc from a local file and push its contents. Without
     --workspace it goes to your personal workspace. Title defaults to the first
     "# heading" or the filename. JSON: {"docId","version"}.
+- mdocs share <doc-id> <email> [--role viewer|editor]
+    Share a doc with a person by email (default role editor). They see it under
+    their "Shared" view. JSON: {"status","role"}.
+- mdocs share <doc-id> --link [--role viewer|editor]
+    Create a shareable link (anyone signed in who opens it gets access). Prints
+    the URL. JSON: {"url","role"}.
 - mdocs history <doc-id> [--json]   (alias: log)
     Show version history: each version's number, time, author, source, message.
     JSON: [{"n","createdAt","authorEmail","source","message","contentHash"}]

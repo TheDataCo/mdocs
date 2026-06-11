@@ -65,4 +65,8 @@ export class Api {
     this.req('/api/docs', { method: 'POST', body: JSON.stringify({ title, workspaceId }) }).then((r) => r.json())
   push = (id: string, payload: { baseVersion: number; content: string; message?: string }) =>
     this.req(`/api/docs/${id}/push`, { method: 'POST', body: JSON.stringify(payload) }).then((r) => r.json())
+  shareWithEmail = (id: string, email: string, role: string) =>
+    this.req(`/api/docs/${id}/share`, { method: 'POST', body: JSON.stringify({ email, role }) }).then((r) => r.json())
+  createShareLink = (id: string, role: string) =>
+    this.req(`/api/docs/${id}/links`, { method: 'POST', body: JSON.stringify({ role }) }).then((r) => r.json())
 }

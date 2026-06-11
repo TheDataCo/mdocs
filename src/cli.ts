@@ -274,6 +274,31 @@ program
     process.stdout.write(`Reverted to v${version} → new version ${res.version.n}\n`)
   })
 
+program
+  .command('share <doc> [email]')
+  .description('Share a doc with someone by email, or create a shareable link (--link)')
+  .option('-r, --role <role>', 'viewer or editor', 'editor')
+  .option('--link', 'create a shareable link instead of emailing a person')
+  .action(async (docId: string, email: string | undefined, opts: { role?: string; link?: boolean }) => {
+    const role = opts.role === 'viewer' ? 'viewer' : 'editor'
+    const client = api()
+    if (opts.link || !email) {
+      const { token } = await client.createShareLink(docId, role).catch((e: ApiError) => fail(e.code, e.message))
+      const { server } = resolve(program.opts())
+      const url = `${server}/d/${docId}?share=${token}`
+      if (program.opts().json) return void process.stdout.write(JSON.stringify({ url, role }) + '\n')
+      process.stdout.write(`${role === 'viewer' ? 'Read-only' : 'Edit'} link:\n${url}\n`)
+      return
+    }
+    const { result } = await client.shareWithEmail(docId, email, role).catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(result) + '\n')
+    process.stdout.write(
+      result.status === 'shared'
+        ? `Shared with ${email} as ${result.role}.\n`
+        : `No mdocs account for ${email} yet — they need to sign in once, then re-share.\n`,
+    )
+  })
+
 const skills = program.command('skills').description('Install the mdocs agent skill (Claude + Codex)')
 skills
   .command('install')
