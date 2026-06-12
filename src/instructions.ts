@@ -72,8 +72,10 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - mdocs comments <doc-id> [--all] [--json]
     List open comments (people leave these as tasks for you). --all includes
     resolved. JSON: [{"id","author_name","body","excerpt","status","parent_id"}]
-- mdocs comments add <doc-id> <text...>
-    Add a comment to a doc.
+- mdocs comments add <doc-id> <text...> [--as <name>]
+    Add a comment to a doc. Comments are attributed to "<owner email>'s agent";
+    pass --as to sign with your agent name, e.g. --as "Claude" shows as
+    "Claude (owner@example.com's agent)". You cannot impersonate a human.
 - mdocs comments resolve <doc-id> <comment-id>
     Mark a comment resolved (do this after you've made the requested change).
     Typical task loop: read open comments → pull → edit → push --message → resolve.

@@ -323,13 +323,14 @@ cm.command('list <doc>', { isDefault: true })
   })
 
 cm.command('add <doc> <body...>')
-  .description('Add a comment to a doc')
-  .action(async (docId: string, body: string[]) => {
+  .description('Add a comment to a doc (signed as "<your email>\'s agent")')
+  .option('-a, --as <name>', 'sign with an agent name, e.g. "Claude" → Claude (you@x.com\'s agent)')
+  .action(async (docId: string, body: string[], opts: { as?: string }) => {
     const { comment } = await api()
-      .addComment(docId, body.join(' '))
+      .addComment(docId, body.join(' '), opts.as)
       .catch((e: ApiError) => fail(e.code, e.message))
     if (program.opts().json) return void process.stdout.write(JSON.stringify(comment) + '\n')
-    process.stdout.write(`Added comment ${comment.id}\n`)
+    process.stdout.write(`Added comment ${comment.id}${comment.authorName ? ` as ${comment.authorName}` : ''}\n`)
   })
 
 cm.command('resolve <doc> <id>')

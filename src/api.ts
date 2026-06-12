@@ -73,8 +73,10 @@ export class Api {
     this.req(`/api/docs/${id}/links`, { method: 'POST', body: JSON.stringify({ role }) }).then((r) => r.json())
   listComments = (id: string, status?: string) =>
     this.req(`/api/docs/${id}/comments${status ? `?status=${status}` : ''}`).then((r) => r.json())
-  addComment = (id: string, body: string) =>
-    this.req(`/api/docs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body }) }).then((r) => r.json())
+  addComment = (id: string, body: string, author?: string) =>
+    this.req(`/api/docs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body, author }) }).then((r) =>
+      r.json(),
+    )
   resolveComment = (id: string, cid: string) =>
     this.req(`/api/docs/${id}/comments/${cid}/resolve`, { method: 'POST', body: '{}' }).then((r) => r.json())
   // Recently deleted (retention window depends on the account's plan)
