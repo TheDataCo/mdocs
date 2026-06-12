@@ -165,7 +165,8 @@ program
 
 program
   .command('cat <doc>')
-  .description('Print a document’s current markdown to stdout')
+  .alias('read')
+  .description('Print a document’s current markdown to stdout (read without pulling)')
   .action(async (docId: string) => {
     const text = await api()
       .readContent(docId)

@@ -47,7 +47,7 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     Create a new doc from a local file and push its contents. The workspace id
     can be a positional arg or --workspace; without it the doc goes to your
     personal workspace. Title defaults to the first "# heading" or the filename.
-- mdocs cat <doc-id>
+- mdocs cat <doc-id>   (alias: read)
     Print a doc's current markdown to stdout (read without writing a file).
 - mdocs share <doc-id> <email> [--role viewer|editor]
     Share a doc with a person by email (default role editor). They see it under
