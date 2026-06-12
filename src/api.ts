@@ -55,6 +55,8 @@ export class Api {
   createWorkspace = (name: string) =>
     this.req('/api/workspaces', { method: 'POST', body: JSON.stringify({ name }) }).then((r) => r.json())
   pull = (id: string) => this.req(`/api/docs/${id}/pull`).then((r) => r.json())
+  readContent = (id: string) => this.req(`/api/docs/${id}/content`).then((r) => r.text())
+  listShared = () => this.req('/api/docs/shared').then((r) => r.json())
   history = (id: string) => this.req(`/api/docs/${id}/versions`).then((r) => r.json())
   versionContent = (id: string, n: number) => this.req(`/api/docs/${id}/versions/${n}`).then((r) => r.text())
   revert = (id: string, version: number, message?: string) =>

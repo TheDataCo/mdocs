@@ -43,10 +43,12 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     doc (humans see it instantly), and records a version. On a conflicting
     overlap it exits 7 (patch_conflict) — re-run pull, re-apply, push again.
     ALWAYS pass --message describing the change. JSON: {"version"}.
-- mdocs new <path> [--workspace <id>] [--title "…"] [--json]
-    Create a new doc from a local file and push its contents. Without
-    --workspace it goes to your personal workspace. Title defaults to the first
-    "# heading" or the filename. JSON: {"docId","version"}.
+- mdocs new <path> [workspace-id] [--title "…"] [--json]
+    Create a new doc from a local file and push its contents. The workspace id
+    can be a positional arg or --workspace; without it the doc goes to your
+    personal workspace. Title defaults to the first "# heading" or the filename.
+- mdocs cat <doc-id>
+    Print a doc's current markdown to stdout (read without writing a file).
 - mdocs share <doc-id> <email> [--role viewer|editor]
     Share a doc with a person by email (default role editor). They see it under
     their "Shared" view. JSON: {"status","role"}.

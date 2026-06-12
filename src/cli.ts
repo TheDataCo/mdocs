@@ -135,14 +135,42 @@ program
 // ---- docs ----
 program
   .command('ls')
-  .description('List accessible documents')
+  .description('List accessible documents, grouped by workspace')
   .action(async () => {
-    const { docs } = await api()
-      .listDocs()
+    const client = api()
+    const [{ docs }, { workspaces }, shared] = await Promise.all([
+      client.listDocs(),
+      client.listWorkspaces(),
+      client.listShared().then((r) => r.docs).catch(() => []),
+    ]).catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) {
+      return void process.stdout.write(JSON.stringify({ docs, workspaces, shared }) + '\n')
+    }
+    const wsName = new Map<string, string>(workspaces.map((w: { id: string; name: string }) => [w.id, w.name]))
+    const byWs = new Map<string, { id: string; title: string }[]>()
+    for (const d of docs) {
+      const k = d.workspace_id ?? 'none'
+      ;(byWs.get(k) ?? byWs.set(k, []).get(k)!).push(d)
+    }
+    if (docs.length === 0 && shared.length === 0) return void process.stdout.write('No documents.\n')
+    for (const [wid, list] of byWs) {
+      process.stdout.write(`\n${wsName.get(wid) ?? 'Workspace'}\n`)
+      for (const d of list) process.stdout.write(`  ${d.id}  ${d.title}\n`)
+    }
+    if (shared.length > 0) {
+      process.stdout.write(`\nShared\n`)
+      for (const d of shared) process.stdout.write(`  ${d.id}  ${d.title}  (${d.owner_email ?? 'shared'})\n`)
+    }
+  })
+
+program
+  .command('cat <doc>')
+  .description('Print a document’s current markdown to stdout')
+  .action(async (docId: string) => {
+    const text = await api()
+      .readContent(docId)
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(docs) + '\n')
-    if (docs.length === 0) return void process.stdout.write('No documents.\n')
-    for (const d of docs) process.stdout.write(`${d.id}  ${d.title}\n`)
+    process.stdout.write(text.endsWith('\n') ? text : text + '\n')
   })
 
 program
@@ -228,17 +256,18 @@ program
   })
 
 program
-  .command('new <path>')
+  .command('new <path> [workspace]')
   .description('Create a new doc from a local file and push its contents')
   .option('-w, --workspace <id>', 'workspace to create it in (default: personal)')
   .option('-t, --title <title>', 'doc title (default: first heading or filename)')
-  .action(async (path: string, opts: { workspace?: string; title?: string }) => {
+  .action(async (path: string, workspaceArg: string | undefined, opts: { workspace?: string; title?: string }) => {
     const { server } = resolve(program.opts())
+    const workspaceId = opts.workspace ?? workspaceArg // accept positional or --workspace
     const content = readFileSync(path, 'utf8')
     const title =
       opts.title ?? content.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? basename(path).replace(/\.md$/, '')
     const client = api()
-    const { doc } = await client.createDoc(title, opts.workspace).catch((e: ApiError) => fail(e.code, e.message))
+    const { doc } = await client.createDoc(title, workspaceId).catch((e: ApiError) => fail(e.code, e.message))
     const res = await client
       .push(doc.id, { baseVersion: 0, content, message: 'create' })
       .catch((e: ApiError) => fail(e.code, e.message))
