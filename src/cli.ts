@@ -30,9 +30,22 @@ function fail(code: string, message: string): never {
 }
 
 function openBrowser(url: string): void {
-  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open'
+  // The URL comes from the server — validate it and keep it away from any
+  // shell (shell:true on Windows would let a hostile server run commands).
   try {
-    spawn(cmd, [url], { stdio: 'ignore', detached: true, shell: process.platform === 'win32' }).unref()
+    const proto = new URL(url).protocol
+    if (proto !== 'https:' && proto !== 'http:') return
+  } catch {
+    return
+  }
+  const [cmd, args]: [string, string[]] =
+    process.platform === 'darwin'
+      ? ['open', [url]]
+      : process.platform === 'win32'
+        ? ['rundll32', ['url.dll,FileProtocolHandler', url]]
+        : ['xdg-open', [url]]
+  try {
+    spawn(cmd, args, { stdio: 'ignore', detached: true }).unref()
   } catch {
     /* fall back to printing the URL */
   }

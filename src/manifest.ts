@@ -44,15 +44,22 @@ export function listEntries(): DocEntry[] {
   return Object.values(read().docs)
 }
 
+// Doc ids are uuid-shaped, but some come from the server or user input —
+// anything else (e.g. "../x") must never reach the filesystem as a path part.
+function safeId(docId: string): string {
+  if (!/^[A-Za-z0-9_-]+$/.test(docId)) throw new Error(`invalid doc id: ${JSON.stringify(docId)}`)
+  return docId
+}
+
 export function setEntry(entry: DocEntry, baseContent: string): void {
   const m = read()
-  m.docs[entry.docId] = entry
+  m.docs[safeId(entry.docId)] = entry
   mkdirSync(join(DIR, 'base'), { recursive: true })
-  writeFileSync(join(DIR, 'base', `${entry.docId}.md`), baseContent)
+  writeFileSync(join(DIR, 'base', `${safeId(entry.docId)}.md`), baseContent)
   write(m)
 }
 
 export function getBase(docId: string): string | undefined {
-  const p = join(DIR, 'base', `${docId}.md`)
+  const p = join(DIR, 'base', `${safeId(docId)}.md`)
   return existsSync(p) ? readFileSync(p, 'utf8') : undefined
 }
