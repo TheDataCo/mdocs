@@ -402,7 +402,7 @@ trash
 
 trash
   .command('cat <doc>')
-  .alias('view')
+  .aliases(['view', 'read'])
   .description('Print a deleted document’s markdown to stdout')
   .action(async (docId: string) => {
     const text = await api()
