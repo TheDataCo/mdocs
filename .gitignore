@@ -6,3 +6,4 @@ dist/
 
 # never commit npm auth tokens
 .npmrc
+.env
