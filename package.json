@@ -19,7 +19,9 @@
     "build": "tsup",
     "dev": "tsx src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "prepare": "tsup"
+    "prepare": "tsup",
+    "release": "npm version patch -m 'release v%s' && npm publish && git push --follow-tags",
+    "release:minor": "npm version minor -m 'release v%s' && npm publish && git push --follow-tags"
   },
   "keywords": [
     "markdown",

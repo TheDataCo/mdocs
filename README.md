@@ -51,6 +51,26 @@ headless/CI use, set `MDOCS_TOKEN` (generate one in the app) and `MDOCS_SERVER`.
 `0` ok · `2` usage · `3` auth · `4` permission · `5` not found · `6` stale manifest ·
 `7` conflict · `8` network · `9` server. `--json` for machine-readable output.
 
+## Releasing
+
+One-time setup — create a **granular access token** at npmjs.com (Access Tokens →
+Generate → Granular; Read **and write** for the `@thedataco` scope; enable
+**bypass 2FA**), then store it (never committed):
+
+```sh
+npm config set //registry.npmjs.org/:_authToken <TOKEN>
+```
+
+Then every release is one command (bumps the version, builds, publishes, tags):
+
+```sh
+npm run release          # patch (0.2.7 → 0.2.8)
+npm run release:minor    # minor (0.2.7 → 0.3.0)
+```
+
+Requires a clean git tree. With the bypass-2FA token, publish runs without an OTP
+prompt.
+
 ## License
 
 MIT
