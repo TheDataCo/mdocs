@@ -77,4 +77,10 @@ export class Api {
     this.req(`/api/docs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body }) }).then((r) => r.json())
   resolveComment = (id: string, cid: string) =>
     this.req(`/api/docs/${id}/comments/${cid}/resolve`, { method: 'POST', body: '{}' }).then((r) => r.json())
+  // Recently deleted (retention window depends on the account's plan)
+  listTrash = () => this.req('/api/trash').then((r) => r.json())
+  trashContent = (id: string) => this.req(`/api/trash/docs/${id}/content`).then((r) => r.text())
+  restoreDoc = (id: string) => this.req(`/api/docs/${id}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
+  restoreWorkspace = (id: string) =>
+    this.req(`/api/workspaces/${id}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
 }

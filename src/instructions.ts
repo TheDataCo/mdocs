@@ -77,6 +77,15 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - mdocs comments resolve <doc-id> <comment-id>
     Mark a comment resolved (do this after you've made the requested change).
     Typical task loop: read open comments → pull → edit → push --message → resolve.
+- mdocs trash [ls] [--json]
+    List recently deleted docs and workspaces still inside the account's
+    retention window. JSON: {"docs":[{"id","title","workspace_name","deleted_at"}],
+    "workspaces":[{"id","name","doc_count","deleted_at"}],"retentionDays"}
+- mdocs trash cat <doc-id>   (alias: view)
+    Print a deleted document's markdown (read-only; the doc stays deleted).
+- mdocs trash restore <id>
+    Restore a deleted doc or workspace (restoring a workspace also restores
+    the docs deleted with it).
 - mdocs whoami [--json]
 - mdocs auth login | logout
 - mdocs instructions

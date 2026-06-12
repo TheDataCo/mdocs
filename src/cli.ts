@@ -366,6 +366,68 @@ program
     )
   })
 
+// ---- trash (recently deleted) ----
+const daysLeft = (deletedAt: string, retentionDays: number): string => {
+  const days = Math.ceil((new Date(deletedAt).getTime() + retentionDays * 86400_000 - Date.now()) / 86400_000)
+  return days <= 0 ? 'expires today' : `${days}d left`
+}
+
+const trash = program.command('trash').description('Recently deleted docs and workspaces (list, view, restore)')
+
+trash
+  .command('ls', { isDefault: true })
+  .alias('list')
+  .description('List recently deleted docs and workspaces')
+  .action(async () => {
+    const t = await api()
+      .listTrash()
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify(t) + '\n')
+    if (t.docs.length === 0 && t.workspaces.length === 0) return void process.stdout.write('Trash is empty.\n')
+    process.stdout.write(`Restorable for ${t.retentionDays} days after deletion.\n`)
+    if (t.workspaces.length > 0) {
+      process.stdout.write('\nWorkspaces\n')
+      for (const w of t.workspaces) {
+        process.stdout.write(`  ${w.id}  ${w.name}  (${w.doc_count} docs, ${daysLeft(w.deleted_at, t.retentionDays)})\n`)
+      }
+    }
+    if (t.docs.length > 0) {
+      process.stdout.write('\nDocs\n')
+      for (const d of t.docs) {
+        process.stdout.write(`  ${d.id}  ${d.title}  (${d.workspace_name}, ${daysLeft(d.deleted_at, t.retentionDays)})\n`)
+      }
+    }
+  })
+
+trash
+  .command('cat <doc>')
+  .alias('view')
+  .description('Print a deleted document’s markdown to stdout')
+  .action(async (docId: string) => {
+    const text = await api()
+      .trashContent(docId)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    process.stdout.write(text.endsWith('\n') ? text : text + '\n')
+  })
+
+trash
+  .command('restore <id>')
+  .description('Restore a deleted doc or workspace by id')
+  .action(async (id: string) => {
+    const client = api()
+    // The id is either a doc or a workspace — try the doc first.
+    try {
+      await client.restoreDoc(id)
+      if (program.opts().json) return void process.stdout.write(JSON.stringify({ restored: 'doc', id }) + '\n')
+      return void process.stdout.write(`Restored doc ${id}\n`)
+    } catch (e) {
+      if ((e as ApiError).code !== 'not_found') fail((e as ApiError).code, (e as ApiError).message)
+    }
+    await client.restoreWorkspace(id).catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(JSON.stringify({ restored: 'workspace', id }) + '\n')
+    process.stdout.write(`Restored workspace ${id}\n`)
+  })
+
 const skills = program.command('skills').description('Install the mdocs agent skill (Claude + Codex)')
 skills
   .command('install')
