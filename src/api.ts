@@ -54,35 +54,35 @@ export class Api {
   listWorkspaces = () => this.req('/api/workspaces').then((r) => r.json())
   createWorkspace = (name: string) =>
     this.req('/api/workspaces', { method: 'POST', body: JSON.stringify({ name }) }).then((r) => r.json())
-  pull = (id: string) => this.req(`/api/docs/${id}/pull`).then((r) => r.json())
-  readContent = (id: string) => this.req(`/api/docs/${id}/content`).then((r) => r.text())
+  pull = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/pull`).then((r) => r.json())
+  readContent = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/content`).then((r) => r.text())
   listShared = () => this.req('/api/docs/shared').then((r) => r.json())
-  history = (id: string) => this.req(`/api/docs/${id}/versions`).then((r) => r.json())
-  versionContent = (id: string, n: number) => this.req(`/api/docs/${id}/versions/${n}`).then((r) => r.text())
+  history = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/versions`).then((r) => r.json())
+  versionContent = (id: string, n: number) => this.req(`/api/docs/${encodeURIComponent(id)}/versions/${n}`).then((r) => r.text())
   revert = (id: string, version: number, message?: string) =>
-    this.req(`/api/docs/${id}/revert`, { method: 'POST', body: JSON.stringify({ version, message }) }).then((r) =>
+    this.req(`/api/docs/${encodeURIComponent(id)}/revert`, { method: 'POST', body: JSON.stringify({ version, message }) }).then((r) =>
       r.json(),
     )
   createDoc = (title: string, workspaceId?: string) =>
     this.req('/api/docs', { method: 'POST', body: JSON.stringify({ title, workspaceId }) }).then((r) => r.json())
   push = (id: string, payload: { baseVersion: number; content: string; message?: string }) =>
-    this.req(`/api/docs/${id}/push`, { method: 'POST', body: JSON.stringify(payload) }).then((r) => r.json())
+    this.req(`/api/docs/${encodeURIComponent(id)}/push`, { method: 'POST', body: JSON.stringify(payload) }).then((r) => r.json())
   shareWithEmail = (id: string, email: string, role: string) =>
-    this.req(`/api/docs/${id}/share`, { method: 'POST', body: JSON.stringify({ email, role }) }).then((r) => r.json())
+    this.req(`/api/docs/${encodeURIComponent(id)}/share`, { method: 'POST', body: JSON.stringify({ email, role }) }).then((r) => r.json())
   createShareLink = (id: string, role: string) =>
-    this.req(`/api/docs/${id}/links`, { method: 'POST', body: JSON.stringify({ role }) }).then((r) => r.json())
+    this.req(`/api/docs/${encodeURIComponent(id)}/links`, { method: 'POST', body: JSON.stringify({ role }) }).then((r) => r.json())
   listComments = (id: string, status?: string) =>
-    this.req(`/api/docs/${id}/comments${status ? `?status=${status}` : ''}`).then((r) => r.json())
+    this.req(`/api/docs/${encodeURIComponent(id)}/comments${status ? `?status=${encodeURIComponent(status)}` : ''}`).then((r) => r.json())
   addComment = (id: string, body: string, author?: string) =>
-    this.req(`/api/docs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body, author }) }).then((r) =>
+    this.req(`/api/docs/${encodeURIComponent(id)}/comments`, { method: 'POST', body: JSON.stringify({ body, author }) }).then((r) =>
       r.json(),
     )
   resolveComment = (id: string, cid: string) =>
-    this.req(`/api/docs/${id}/comments/${cid}/resolve`, { method: 'POST', body: '{}' }).then((r) => r.json())
+    this.req(`/api/docs/${encodeURIComponent(id)}/comments/${encodeURIComponent(cid)}/resolve`, { method: 'POST', body: '{}' }).then((r) => r.json())
   // Recently deleted (retention window depends on the account's plan)
   listTrash = () => this.req('/api/trash').then((r) => r.json())
-  trashContent = (id: string) => this.req(`/api/trash/docs/${id}/content`).then((r) => r.text())
-  restoreDoc = (id: string) => this.req(`/api/docs/${id}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
+  trashContent = (id: string) => this.req(`/api/trash/docs/${encodeURIComponent(id)}/content`).then((r) => r.text())
+  restoreDoc = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
   restoreWorkspace = (id: string) =>
-    this.req(`/api/workspaces/${id}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
+    this.req(`/api/workspaces/${encodeURIComponent(id)}/restore`, { method: 'POST', body: '{}' }).then((r) => r.json())
 }

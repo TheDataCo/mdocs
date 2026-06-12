@@ -26,19 +26,37 @@ export function loadConfig(): Config {
 export function saveConfig(config: Config): void {
   const p = configPath()
   mkdirSync(dirname(p), { recursive: true })
-  writeFileSync(p, JSON.stringify(config, null, 2))
+  writeFileSync(p, JSON.stringify(config, null, 2), { mode: 0o600 })
   try {
-    chmodSync(p, 0o600) // best-effort; no-op on platforms without POSIX perms
+    chmodSync(p, 0o600) // for pre-existing files; no-op on platforms without POSIX perms
   } catch {
     /* ignore */
   }
+}
+
+// The token is sent as a bearer header to whatever this resolves to, so an
+// http:// server (except local dev) would leak it to the network.
+function checkServerUrl(server: string): string {
+  let u: URL
+  try {
+    u = new URL(server)
+  } catch {
+    process.stderr.write(`mdocs: invalid server URL ${JSON.stringify(server)} — expected e.g. https://mdocs.datacompany.dev\n`)
+    process.exit(2)
+  }
+  const local = u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '::1'
+  if (u.protocol !== 'https:' && !(u.protocol === 'http:' && local)) {
+    process.stderr.write(`mdocs: refusing non-HTTPS server ${server} (tokens would be sent in cleartext)\n`)
+    process.exit(2)
+  }
+  return server
 }
 
 /** Resolve server + token with precedence: env > flag-injected config > saved config. */
 export function resolve(opts: { server?: string } = {}): { server: string; token?: string } {
   const cfg = loadConfig()
   return {
-    server: process.env.MDOCS_SERVER || opts.server || cfg.server || DEFAULT_SERVER,
+    server: checkServerUrl(process.env.MDOCS_SERVER || opts.server || cfg.server || DEFAULT_SERVER),
     token: process.env.MDOCS_TOKEN || cfg.token,
   }
 }
