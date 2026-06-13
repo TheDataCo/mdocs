@@ -4,7 +4,7 @@ import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
-import { Api, ApiError } from './api.js'
+import { Api, type ApiError } from './api.js'
 import { loadConfig, resolve, saveConfig } from './config.js'
 import { INSTRUCTIONS } from './instructions.js'
 import { findByPath, getEntry, listEntries, setEntry } from './manifest.js'
@@ -141,7 +141,7 @@ program
     const { user } = await api()
       .me()
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(user) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(user)}\n`)
     process.stdout.write(user ? `${user.email}\n` : 'Not logged in as a user.\n')
   })
 
@@ -157,7 +157,7 @@ program
       client.listShared().then((r) => r.docs).catch(() => []),
     ]).catch((e: ApiError) => fail(e.code, e.message))
     if (program.opts().json) {
-      return void process.stdout.write(JSON.stringify({ docs, workspaces, shared }) + '\n')
+      return void process.stdout.write(`${JSON.stringify({ docs, workspaces, shared })}\n`)
     }
     const wsName = new Map<string, string>(workspaces.map((w: { id: string; name: string }) => [w.id, w.name]))
     const byWs = new Map<string, { id: string; title: string }[]>()
@@ -184,7 +184,7 @@ program
     const text = await api()
       .readContent(docId)
       .catch((e: ApiError) => fail(e.code, e.message))
-    process.stdout.write(text.endsWith('\n') ? text : text + '\n')
+    process.stdout.write(text.endsWith('\n') ? text : `${text}\n`)
   })
 
 program
@@ -218,7 +218,7 @@ program
       res.content,
     )
     if (program.opts().json) {
-      process.stdout.write(JSON.stringify({ path: dest, version: res.version.n }) + '\n')
+      process.stdout.write(`${JSON.stringify({ path: dest, version: res.version.n })}\n`)
     } else {
       process.stdout.write(`Pulled "${res.doc.title}" → ${dest} (version ${res.version.n})\n`)
     }
@@ -232,7 +232,7 @@ ws.command('list', { isDefault: true })
     const { workspaces } = await api()
       .listWorkspaces()
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(workspaces) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(workspaces)}\n`)
     for (const w of workspaces) process.stdout.write(`${w.id}  ${w.type === 'personal' ? '(personal)' : '(team)   '}  ${w.name}\n`)
   })
 
@@ -242,7 +242,7 @@ ws.command('create <name>')
     const { workspace } = await api()
       .createWorkspace(name)
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(workspace) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(workspace)}\n`)
     process.stdout.write(`Created workspace "${workspace.name}" (${workspace.id})\n`)
   })
 
@@ -265,7 +265,7 @@ program
         fail(e.code, e.message)
       })
     setEntry({ ...entry, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
-    if (program.opts().json) return void process.stdout.write(JSON.stringify({ version: res.version.n }) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ version: res.version.n })}\n`)
     process.stdout.write(`Pushed ${entry.path} (version ${res.version.n})\n`)
   })
 
@@ -286,7 +286,7 @@ program
       .push(doc.id, { baseVersion: 0, content, message: 'create' })
       .catch((e: ApiError) => fail(e.code, e.message))
     setEntry({ docId: doc.id, path, server, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
-    if (program.opts().json) return void process.stdout.write(JSON.stringify({ docId: doc.id, version: res.version.n }) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ docId: doc.id, version: res.version.n })}\n`)
     process.stdout.write(`Created "${title}" (${doc.id}) and pushed ${path}\n`)
   })
 
@@ -298,7 +298,7 @@ program
     const { versions } = await api()
       .history(docId)
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(versions) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(versions)}\n`)
     for (const v of versions) {
       const who = v.authorEmail ?? (v.source === 'cli-pull' ? '—' : v.source)
       process.stdout.write(`v${v.n}\t${new Date(v.createdAt).toLocaleString()}\t${who}\t${v.message ?? v.source}\n`)
@@ -313,7 +313,7 @@ program
     const res = await api()
       .revert(docId, Number(version), opts.message)
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify({ version: res.version.n }) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ version: res.version.n })}\n`)
     process.stdout.write(`Reverted to v${version} → new version ${res.version.n}\n`)
   })
 
@@ -326,7 +326,7 @@ cm.command('list <doc>', { isDefault: true })
     const { comments } = await api()
       .listComments(docId, opts.all ? undefined : 'open')
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(comments) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(comments)}\n`)
     if (comments.length === 0) return void process.stdout.write('No comments.\n')
     for (const c of comments) {
       const tag = c.parent_id ? '  ↳' : `[${c.status}]`
@@ -342,7 +342,7 @@ cm.command('add <doc> <body...>')
     const { comment } = await api()
       .addComment(docId, body.join(' '), opts.as)
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(comment) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(comment)}\n`)
     process.stdout.write(`Added comment ${comment.id}${comment.authorName ? ` as ${comment.authorName}` : ''}\n`)
   })
 
@@ -367,12 +367,12 @@ program
       const { token } = await client.createShareLink(docId, role).catch((e: ApiError) => fail(e.code, e.message))
       const { server } = resolve(program.opts())
       const url = `${server}/d/${docId}?share=${token}`
-      if (program.opts().json) return void process.stdout.write(JSON.stringify({ url, role }) + '\n')
+      if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ url, role })}\n`)
       process.stdout.write(`${role === 'viewer' ? 'Read-only' : 'Edit'} link:\n${url}\n`)
       return
     }
     const { result } = await client.shareWithEmail(docId, email, role).catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(result) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(result)}\n`)
     process.stdout.write(
       result.status === 'shared'
         ? `Shared with ${email} as ${result.role}.\n`
@@ -396,7 +396,7 @@ trash
     const t = await api()
       .listTrash()
       .catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify(t) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(t)}\n`)
     if (t.docs.length === 0 && t.workspaces.length === 0) return void process.stdout.write('Trash is empty.\n')
     process.stdout.write(`Restorable for ${t.retentionDays} days after deletion.\n`)
     if (t.workspaces.length > 0) {
@@ -421,7 +421,7 @@ trash
     const text = await api()
       .trashContent(docId)
       .catch((e: ApiError) => fail(e.code, e.message))
-    process.stdout.write(text.endsWith('\n') ? text : text + '\n')
+    process.stdout.write(text.endsWith('\n') ? text : `${text}\n`)
   })
 
 trash
@@ -432,13 +432,13 @@ trash
     // The id is either a doc or a workspace — try the doc first.
     try {
       await client.restoreDoc(id)
-      if (program.opts().json) return void process.stdout.write(JSON.stringify({ restored: 'doc', id }) + '\n')
+      if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ restored: 'doc', id })}\n`)
       return void process.stdout.write(`Restored doc ${id}\n`)
     } catch (e) {
       if ((e as ApiError).code !== 'not_found') fail((e as ApiError).code, (e as ApiError).message)
     }
     await client.restoreWorkspace(id).catch((e: ApiError) => fail(e.code, e.message))
-    if (program.opts().json) return void process.stdout.write(JSON.stringify({ restored: 'workspace', id }) + '\n')
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ restored: 'workspace', id })}\n`)
     process.stdout.write(`Restored workspace ${id}\n`)
   })
 
