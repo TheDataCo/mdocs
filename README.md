@@ -126,6 +126,12 @@ npm run release:minor    # minor (0.2.9 → 0.3.0)
 Requires a clean git tree. With the bypass-2FA token, publish runs without an
 OTP prompt.
 
+## Contributing
+
+PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md). Commits must be signed off
+(`git commit -s`), and `pnpm lint`, `pnpm typecheck`, and `pnpm build` run in CI
+on every PR.
+
 ## License
 
 MIT — the mdocs app (server, web, core) is AGPL-3.0 and free to self-host.
