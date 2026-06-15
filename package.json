@@ -1,7 +1,7 @@
 {
   "name": "@thedataco/mdocs",
-  "version": "0.2.11",
-  "description": "CLI for mdocs \u2014 Docs for Markdown. Auth, list, and pull markdown docs from the terminal.",
+  "version": "0.2.12",
+  "description": "CLI for mdocs — Docs for Markdown. Auth, list, and pull markdown docs from the terminal.",
   "type": "module",
   "bin": {
     "mdocs": "dist/cli.js"
