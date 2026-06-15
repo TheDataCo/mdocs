@@ -57,6 +57,11 @@ export class Api {
   pull = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/pull`).then((r) => r.json())
   readContent = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/content`).then((r) => r.text())
   listShared = () => this.req('/api/docs/shared').then((r) => r.json())
+  listFavorites = () => this.req('/api/docs/favorites').then((r) => r.json())
+  favorite = (id: string) =>
+    this.req(`/api/docs/${encodeURIComponent(id)}/favorite`, { method: 'PUT', body: '{}' }).then((r) => r.json())
+  unfavorite = (id: string) =>
+    this.req(`/api/docs/${encodeURIComponent(id)}/favorite`, { method: 'DELETE' }).then((r) => r.json())
   history = (id: string) => this.req(`/api/docs/${encodeURIComponent(id)}/versions`).then((r) => r.json())
   versionContent = (id: string, n: number) => this.req(`/api/docs/${encodeURIComponent(id)}/versions/${n}`).then((r) => r.text())
   revert = (id: string, version: number, message?: string) =>
