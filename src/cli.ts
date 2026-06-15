@@ -160,19 +160,23 @@ program
       return void process.stdout.write(`${JSON.stringify({ docs, workspaces, shared })}\n`)
     }
     const wsName = new Map<string, string>(workspaces.map((w: { id: string; name: string }) => [w.id, w.name]))
-    const byWs = new Map<string, { id: string; title: string }[]>()
-    for (const d of docs) {
+    type LsDoc = { id: string; title: string; workspace_id?: string | null; favorite?: boolean; owner_email?: string }
+    const byWs = new Map<string, LsDoc[]>()
+    for (const d of docs as LsDoc[]) {
       const k = d.workspace_id ?? 'none'
       ;(byWs.get(k) ?? byWs.set(k, []).get(k)!).push(d)
     }
     if (docs.length === 0 && shared.length === 0) return void process.stdout.write('No documents.\n')
+    // A leading ★ marks favorites (plain space keeps ids aligned).
+    const star = (d: LsDoc) => (d.favorite ? '★' : ' ')
     for (const [wid, list] of byWs) {
       process.stdout.write(`\n${wsName.get(wid) ?? 'Workspace'}\n`)
-      for (const d of list) process.stdout.write(`  ${d.id}  ${d.title}\n`)
+      for (const d of list) process.stdout.write(`  ${star(d)} ${d.id}  ${d.title}\n`)
     }
     if (shared.length > 0) {
       process.stdout.write(`\nShared\n`)
-      for (const d of shared) process.stdout.write(`  ${d.id}  ${d.title}  (${d.owner_email ?? 'shared'})\n`)
+      for (const d of shared as LsDoc[])
+        process.stdout.write(`  ${star(d)} ${d.id}  ${d.title}  (${d.owner_email ?? 'shared'})\n`)
     }
   })
 
@@ -378,6 +382,46 @@ program
         ? `Shared with ${email} as ${result.role}.\n`
         : `No mdocs account for ${email} yet — they need to sign in once, then re-share.\n`,
     )
+  })
+
+// ---- favorites (starred docs) ----
+const fav = program.command('favorites').alias('favs').description('List and manage your favorite (starred) docs')
+
+fav
+  .command('list', { isDefault: true })
+  .description('List your favorite docs')
+  .action(async () => {
+    const { docs } = await api()
+      .listFavorites()
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify(docs)}\n`)
+    if (docs.length === 0) {
+      return void process.stdout.write('No favorites yet. Star one with `mdocs favorites add <doc>`.\n')
+    }
+    for (const d of docs) process.stdout.write(`  ★ ${d.id}  ${d.title}\n`)
+  })
+
+fav
+  .command('add <doc>')
+  .description('Add a doc to your favorites')
+  .action(async (docId: string) => {
+    await api()
+      .favorite(docId)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ id: docId, favorite: true })}\n`)
+    process.stdout.write(`★ Favorited ${docId}\n`)
+  })
+
+fav
+  .command('rm <doc>')
+  .alias('remove')
+  .description('Remove a doc from your favorites')
+  .action(async (docId: string) => {
+    await api()
+      .unfavorite(docId)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ id: docId, favorite: false })}\n`)
+    process.stdout.write(`☆ Unfavorited ${docId}\n`)
   })
 
 // ---- trash (recently deleted) ----

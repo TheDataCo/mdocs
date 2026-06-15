@@ -28,7 +28,8 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 
 ## Commands
 - mdocs ls [--json]
-    List accessible docs. JSON: [{"id","title","workspaceId","createdAt","updatedAt"}]
+    List accessible docs. A leading ★ marks favorites. JSON includes "favorite".
+    [{"id","title","workspaceId","createdAt","updatedAt","favorite"}]
 - mdocs workspaces [--json]   (alias: ws; same as "ws list")
     List your workspaces with ids (for "new --workspace").
 - mdocs ws create <name> [--json]
@@ -55,6 +56,12 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - mdocs share <doc-id> --link [--role viewer|editor]
     Create a shareable link (anyone signed in who opens it gets access). Prints
     the URL. JSON: {"url","role"}.
+- mdocs favorites [list] [--json]   (alias: favs)
+    List your favorite (starred) docs. JSON: same shape as "ls" rows.
+- mdocs favorites add <doc-id>
+    Star a doc so it shows under Favorites (in the app and "mdocs favorites").
+- mdocs favorites rm <doc-id>   (alias: remove)
+    Unstar a doc.
 - mdocs history <doc-id> [--json]   (alias: log)
     Show version history: each version's number, time, author, source, message.
     JSON: [{"n","createdAt","authorEmail","source","message","contentHash"}]
