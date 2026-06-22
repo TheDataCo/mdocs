@@ -50,6 +50,8 @@ export class Api {
     )
 
   me = () => this.req('/api/me').then((r) => r.json())
+  convert = (text: string, hint?: string) =>
+    this.req('/api/convert', { method: 'POST', body: JSON.stringify({ text, hint }) }).then((r) => r.json())
   listDocs = () => this.req('/api/docs').then((r) => r.json())
   listWorkspaces = () => this.req('/api/workspaces').then((r) => r.json())
   createWorkspace = (name: string) =>

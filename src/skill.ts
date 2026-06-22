@@ -33,7 +33,8 @@ it — it lists every command, flag, JSON shape, and exit code:
     mdocs push doc.md --message "why" # 3-way merge back; re-pull if it conflicts
 
 Other commands: mdocs ws (list/create workspaces), mdocs new (create a doc from a
-file), mdocs history / revert, mdocs favorites (star/list docs), mdocs whoami.
+file), mdocs convert (AI-convert raw output → markdown, e.g. "cmd | mdocs convert
+-o notes.md"), mdocs history / revert, mdocs favorites (star/list docs), mdocs whoami.
 
 ## Auth
 - Headless/agent: set MDOCS_TOKEN (a user generates it) and optionally MDOCS_SERVER.

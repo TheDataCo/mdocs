@@ -50,6 +50,12 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     personal workspace. Title defaults to the first "# heading" or the filename.
 - mdocs cat <doc-id>   (alias: read)
     Print a doc's current markdown to stdout (read without writing a file).
+- mdocs convert [input] [-o <path>] [--hint "…"] [--json]
+    AI-convert raw output (logs, JSON, CSV, HTML, terminal dumps) into clean
+    markdown. Reads <input> as a file, or stdin when omitted or "-". Writes to
+    -o <path> if given, else stdout. --hint steers formatting (e.g. "release
+    notes"). JSON: {"markdown"} or {"output"}. Pipe-friendly:
+    "some-cmd | mdocs convert -o notes.md" then "mdocs new notes.md".
 - mdocs share <doc-id> <email> [--role viewer|editor]
     Share a doc with a person by email (default role editor). They see it under
     their "Shared" view. JSON: {"status","role"}.

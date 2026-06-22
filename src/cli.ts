@@ -53,6 +53,18 @@ function openBrowser(url: string): void {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+function readStdin(): Promise<string> {
+  return new Promise((res, rej) => {
+    let data = ''
+    process.stdin.setEncoding('utf8')
+    process.stdin.on('data', (chunk) => {
+      data += chunk
+    })
+    process.stdin.on('end', () => res(data))
+    process.stdin.on('error', rej)
+  })
+}
+
 function slugify(title: string): string {
   return (
     title
@@ -226,6 +238,32 @@ program
     } else {
       process.stdout.write(`Pulled "${res.doc.title}" → ${dest} (version ${res.version.n})\n`)
     }
+  })
+
+program
+  .command('convert [input]')
+  .description('Convert raw output (logs, JSON, HTML…) into clean markdown with AI')
+  .option('-o, --output <path>', 'write the markdown to a file (default: stdout)')
+  .option('--hint <text>', 'guidance for the model, e.g. "format as release notes"')
+  .action(async (input: string | undefined, opts: { output?: string; hint?: string }) => {
+    // Input is a file path; omitted or "-" reads stdin (so commands can pipe in).
+    const fromStdin = !input || input === '-'
+    if (fromStdin && process.stdin.isTTY) {
+      fail('usage', 'No input. Pipe text in (`cmd | mdocs convert`) or pass a file (`mdocs convert raw.txt`).')
+    }
+    const raw = fromStdin ? await readStdin() : readFileSync(input as string, 'utf8')
+    if (!raw.trim()) fail('usage', 'No input to convert.')
+    const { markdown } = await api()
+      .convert(raw, opts.hint)
+      .catch((e: ApiError) => fail(e.code, e.message))
+    const out = markdown.endsWith('\n') ? markdown : `${markdown}\n`
+    if (opts.output) {
+      writeFileSync(opts.output, out)
+      if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ output: opts.output })}\n`)
+      return void process.stdout.write(`Wrote markdown → ${opts.output}\n`)
+    }
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ markdown })}\n`)
+    process.stdout.write(out)
   })
 
 const ws = program.command('workspaces').alias('ws').description('List or create workspaces')

@@ -36,6 +36,22 @@ result to the live document (collaborators in the browser see it instantly),
 and records a version with your message. Conflicting overlaps exit `7` —
 re-pull, re-apply, push again. Like git, without the ceremony.
 
+## AI convert
+
+Turn raw output — logs, JSON, CSV, HTML, terminal dumps — into clean markdown.
+The CLI sends the text to mdocs, which runs it through a model (via OpenRouter)
+server-side, so there's no API key to manage locally.
+
+```sh
+some-command | mdocs convert -o notes.md     # pipe stdin → a markdown file
+mdocs convert raw.txt -o notes.md            # convert a file
+kubectl get pods -o json | mdocs convert     # → stdout (composes with pipes)
+mdocs convert log.txt --hint "release notes" # steer the formatting
+```
+
+Conversion is doc-independent — convert first, then `mdocs new notes.md` to turn
+the result into a live, collaborative doc.
+
 ## History
 
 ```sh
