@@ -32,6 +32,9 @@ it — it lists every command, flag, JSON shape, and exit code:
     # ...edit doc.md...
     mdocs push doc.md --message "why" # 3-way merge back; re-pull if it conflicts
 
+pull/push/new print the doc's browser URL (terminals make it clickable); add
+--open to open it, or run "mdocs open <id-or-path>" any time.
+
 Other commands: mdocs ws (list/create workspaces), mdocs new (create a doc from a
 file), mdocs convert (AI-convert raw output → markdown, e.g. "cmd | mdocs convert
 -o notes.md"), mdocs history / revert, mdocs favorites (star/list docs), mdocs whoami.

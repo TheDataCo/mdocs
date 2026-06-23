@@ -65,6 +65,12 @@ function readStdin(): Promise<string> {
   })
 }
 
+// The canonical browser URL for a doc. Terminals make this clickable, and
+// `open <doc>` / `--open` hand it to openBrowser().
+function docUrl(server: string, docId: string): string {
+  return `${server.replace(/\/$/, '')}/d/${docId}`
+}
+
 function slugify(title: string): string {
   return (
     title
@@ -208,7 +214,8 @@ program
   .description('Pull a document to a local .md file')
   .option('-f, --force', 'overwrite an existing unmanaged file')
   .option('--rev <n>', 'pull a specific historical version (read-only, not linked)')
-  .action(async (docId: string, path: string | undefined, opts: { force?: boolean; rev?: string }) => {
+  .option('--open', 'open the doc in your browser after pulling')
+  .action(async (docId: string, path: string | undefined, opts: { force?: boolean; rev?: string; open?: boolean }) => {
     const { server } = resolve(program.opts())
     // Historical version: fetch that version's text to a file; don't link/track it.
     if (opts.rev) {
@@ -233,11 +240,13 @@ program
       { docId, path: dest, server, baseVersion: res.version.n, baseHash: res.version.contentHash },
       res.content,
     )
+    const url = docUrl(server, docId)
     if (program.opts().json) {
-      process.stdout.write(`${JSON.stringify({ path: dest, version: res.version.n })}\n`)
+      process.stdout.write(`${JSON.stringify({ path: dest, version: res.version.n, url })}\n`)
     } else {
-      process.stdout.write(`Pulled "${res.doc.title}" → ${dest} (version ${res.version.n})\n`)
+      process.stdout.write(`Pulled "${res.doc.title}" → ${dest} (version ${res.version.n})\n${url}\n`)
     }
+    if (opts.open) openBrowser(url)
   })
 
 program
@@ -292,7 +301,8 @@ program
   .command('push [path]')
   .description('Merge local edits back to the doc (server-side 3-way merge)')
   .option('-m, --message <msg>', 'commit message describing the change')
-  .action(async (path: string | undefined, opts: { message?: string }) => {
+  .option('--open', 'open the doc in your browser after pushing')
+  .action(async (path: string | undefined, opts: { message?: string; open?: boolean }) => {
     const entries = listEntries()
     const entry = path ? findByPath(path) : entries.length === 1 ? entries[0] : undefined
     if (!entry) {
@@ -307,8 +317,10 @@ program
         fail(e.code, e.message)
       })
     setEntry({ ...entry, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
-    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ version: res.version.n })}\n`)
-    process.stdout.write(`Pushed ${entry.path} (version ${res.version.n})\n`)
+    const url = docUrl(entry.server, entry.docId)
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ version: res.version.n, url })}\n`)
+    process.stdout.write(`Pushed ${entry.path} (version ${res.version.n})\n${url}\n`)
+    if (opts.open) openBrowser(url)
   })
 
 program
@@ -316,7 +328,8 @@ program
   .description('Create a new doc from a local file and push its contents')
   .option('-w, --workspace <id>', 'workspace to create it in (default: personal)')
   .option('-t, --title <title>', 'doc title (default: first heading or filename)')
-  .action(async (path: string, workspaceArg: string | undefined, opts: { workspace?: string; title?: string }) => {
+  .option('--open', 'open the new doc in your browser')
+  .action(async (path: string, workspaceArg: string | undefined, opts: { workspace?: string; title?: string; open?: boolean }) => {
     const { server } = resolve(program.opts())
     const workspaceId = opts.workspace ?? workspaceArg // accept positional or --workspace
     const content = readFileSync(path, 'utf8')
@@ -328,8 +341,39 @@ program
       .push(doc.id, { baseVersion: 0, content, message: 'create' })
       .catch((e: ApiError) => fail(e.code, e.message))
     setEntry({ docId: doc.id, path, server, baseVersion: res.version.n, baseHash: res.version.contentHash }, content)
-    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ docId: doc.id, version: res.version.n })}\n`)
-    process.stdout.write(`Created "${title}" (${doc.id}) and pushed ${path}\n`)
+    const url = docUrl(server, doc.id)
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ docId: doc.id, version: res.version.n, url })}\n`)
+    process.stdout.write(`Created "${title}" (${doc.id}) and pushed ${path}\n${url}\n`)
+    if (opts.open) openBrowser(url)
+  })
+
+program
+  .command('open [doc]')
+  .description('Open a doc in your browser (by id, by linked file path, or the only linked doc here)')
+  .option('--print', 'print the URL instead of opening the browser')
+  .action(async (doc: string | undefined, opts: { print?: boolean }) => {
+    const { server } = resolve(program.opts())
+    // Resolve to a docId + the server it lives on: an explicit id, a linked
+    // local path, or — when omitted — the sole doc linked in this directory.
+    let docId = doc
+    let urlServer = server
+    if (!docId) {
+      const entries = listEntries()
+      const only = entries.length === 1 ? entries[0] : undefined
+      if (!only) fail('usage', 'Specify a doc id or path (zero or multiple docs linked here).')
+      docId = only.docId
+      urlServer = only.server
+    } else {
+      const linked = findByPath(docId) ?? getEntry(docId)
+      if (linked) {
+        docId = linked.docId
+        urlServer = linked.server
+      }
+    }
+    const url = docUrl(urlServer, docId)
+    if (program.opts().json) return void process.stdout.write(`${JSON.stringify({ url })}\n`)
+    process.stdout.write(`${url}\n`)
+    if (!opts.print) openBrowser(url)
   })
 
 program

@@ -34,20 +34,28 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
     List your workspaces with ids (for "new --workspace").
 - mdocs ws create <name> [--json]
     Create a new team workspace. JSON: {"id","type","name","role"}.
-- mdocs pull <doc-id> [path] [--force] [--json]
+- mdocs pull <doc-id> [path] [--force] [--open] [--json]
     Fetch a doc's current markdown to a local file (default ./<title-slug>.md),
     and link it in ./.mdocs/ (records the base version for a later push).
-    JSON: {"path","version"}. Use --force to overwrite an existing file.
-- mdocs push [path] [--message "why"] [--json]
+    Prints the doc's browser URL. JSON: {"path","version","url"}. Use --force to
+    overwrite an existing file; --open to open it in a browser.
+- mdocs push [path] [--message "why"] [--open] [--json]
     Merge local edits back. The server 3-way merges your file against current
     head using the version you pulled as the ancestor, applies it to the live
     doc (humans see it instantly), and records a version. On a conflicting
     overlap it exits 7 (patch_conflict) — re-run pull, re-apply, push again.
-    ALWAYS pass --message describing the change. JSON: {"version"}.
-- mdocs new <path> [workspace-id] [--title "…"] [--json]
+    ALWAYS pass --message describing the change. Prints the doc's browser URL.
+    JSON: {"version","url"}.
+- mdocs new <path> [workspace-id] [--title "…"] [--open] [--json]
     Create a new doc from a local file and push its contents. The workspace id
     can be a positional arg or --workspace; without it the doc goes to your
     personal workspace. Title defaults to the first "# heading" or the filename.
+    Prints the new doc's browser URL. JSON: {"docId","version","url"}. --open
+    opens it in a browser.
+- mdocs open [doc] [--print] [--json]
+    Open a doc in your browser. Accepts a doc-id or a linked local file path, or
+    nothing when exactly one doc is linked in this directory. --print writes the
+    URL to stdout instead of opening. JSON: {"url"}.
 - mdocs cat <doc-id>   (alias: read)
     Print a doc's current markdown to stdout (read without writing a file).
 - mdocs convert [input] [-o <path>] [--hint "…"] [--json]
