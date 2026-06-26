@@ -1,7 +1,7 @@
 # Contributing to the mdocs CLI
 
 Thanks for your interest in the mdocs CLI — the terminal client for
-[mdocs.datacompany.dev](https://mdocs.datacompany.dev), published as
+[app.usemdocs.com](https://app.usemdocs.com), published as
 [`@thedataco/mdocs`](https://www.npmjs.com/package/@thedataco/mdocs). This repo is
 **MIT**; the [web app](https://github.com/TheDataCo/mdocs-web-editor) is
 AGPL-3.0-only.

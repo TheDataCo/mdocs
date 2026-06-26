@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-export const DEFAULT_SERVER = 'https://mdocs.datacompany.dev'
+export const DEFAULT_SERVER = 'https://app.usemdocs.com'
 
 interface Config {
   server: string
@@ -41,7 +41,7 @@ function checkServerUrl(server: string): string {
   try {
     u = new URL(server)
   } catch {
-    process.stderr.write(`mdocs: invalid server URL ${JSON.stringify(server)} — expected e.g. https://mdocs.datacompany.dev\n`)
+    process.stderr.write(`mdocs: invalid server URL ${JSON.stringify(server)} — expected e.g. https://app.usemdocs.com\n`)
     process.exit(2)
   }
   const local = u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '::1'

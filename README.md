@@ -1,6 +1,6 @@
 # mdocs
 
-The CLI for [**mdocs** — Docs for Markdown](https://mdocs.datacompany.dev), the
+The CLI for [**mdocs** — Docs for Markdown](https://app.usemdocs.com), the
 open-source, real-time Markdown editor from
 [The Data Company](https://datacompany.dev). The same document, live in your
 browser and your terminal: collaborate like Google Docs; pull, edit, and push

@@ -12,7 +12,7 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 - Preferred for agents/CI: set environment variables (no interactive login):
     MDOCS_TOKEN=<token>      a dd_-prefixed API token (a human generates it in
                              the app: "CLI token" button, shown once)
-    MDOCS_SERVER=<url>       optional; defaults to https://mdocs.datacompany.dev
+    MDOCS_SERVER=<url>       optional; defaults to https://app.usemdocs.com
 - Interactive alternative: \`mdocs auth login\` (opens the website to approve a
   code, stores the token in ~/.config/mdocs/config.json). Not for headless use.
 - Verify: \`mdocs whoami --json\` -> {"id","email","name"} or {"user":null}.
@@ -117,7 +117,7 @@ stable JSON when you pass --json. Exit codes are meaningful (see below).
 Global flags: --server <url>, --json.
 
 ## Typical agent workflow
-1. export MDOCS_TOKEN=...; export MDOCS_SERVER=https://mdocs.datacompany.dev
+1. export MDOCS_TOKEN=...; export MDOCS_SERVER=https://app.usemdocs.com
 2. mdocs ls --json                       # find the doc id you need
 3. mdocs pull <id> doc.md --json         # get the markdown locally
 4. edit doc.md                           # make your change

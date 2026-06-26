@@ -4,7 +4,7 @@
 // never goes stale). Avoids inline backticks so it's safe in a template literal.
 export const SKILL_MD = `---
 name: mdocs
-description: Use when the user wants to read, edit, create, review, or collaborate on shared markdown documents via mdocs ("Docs for Markdown") — e.g. "pull/push an mdocs doc", "update the spec in mdocs", reviewing a doc on mdocs.datacompany.dev, or any task run inside a directory that contains a .mdocs/ folder. mdocs documents are live-collaborative markdown that humans edit in a browser; the mdocs CLI lets an agent list, pull, edit, push (3-way merged), and view the history of those docs from the terminal.
+description: Use when the user wants to read, edit, create, review, or collaborate on shared markdown documents via mdocs ("Docs for Markdown") — e.g. "pull/push an mdocs doc", "update the spec in mdocs", reviewing a doc on app.usemdocs.com, or any task run inside a directory that contains a .mdocs/ folder. mdocs documents are live-collaborative markdown that humans edit in a browser; the mdocs CLI lets an agent list, pull, edit, push (3-way merged), and view the history of those docs from the terminal.
 ---
 
 # mdocs — collaborative markdown docs from the CLI
@@ -17,7 +17,7 @@ with your commit message, so humans can see what you changed and why.
 ## When to use this
 - The user asks to read, edit, create, or review a shared markdown / "mdocs" doc.
 - You are working in a directory that contains a .mdocs/ folder (docs linked here).
-- The user references mdocs.datacompany.dev, or an mdocs doc/workspace.
+- The user references app.usemdocs.com, or an mdocs doc/workspace.
 
 ## First, get the full guide
 The CLI ships its own complete, machine-readable guide. Run this once and follow
