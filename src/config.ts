@@ -4,6 +4,12 @@ import { dirname, join } from 'node:path'
 
 export const DEFAULT_SERVER = 'https://app.usemdocs.com'
 
+// Hosts we've since moved off of. A saved config pointing at one of these is
+// silently rewritten to DEFAULT_SERVER on load (see loadConfig), so devices
+// that logged in before the move self-heal on their next command — `mdocs
+// update` only swaps the npm package, it never rewrites config.
+const LEGACY_SERVERS = new Set(['https://mdocs.datacompany.dev'])
+
 interface Config {
   server: string
   token?: string
@@ -16,11 +22,22 @@ function configPath(): string {
 }
 
 export function loadConfig(): Config {
+  let cfg: Config
   try {
-    return JSON.parse(readFileSync(configPath(), 'utf8'))
+    cfg = JSON.parse(readFileSync(configPath(), 'utf8'))
   } catch {
     return { server: DEFAULT_SERVER }
   }
+  // Migrate a saved config off a retired host, preserving the token.
+  if (cfg.server && LEGACY_SERVERS.has(cfg.server)) {
+    cfg.server = DEFAULT_SERVER
+    try {
+      saveConfig(cfg)
+    } catch {
+      /* read-only config — still return the migrated value in-memory */
+    }
+  }
+  return cfg
 }
 
 export function saveConfig(config: Config): void {
